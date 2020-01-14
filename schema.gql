@@ -42,6 +42,40 @@ type Query{
 	Get current user
 	"""
 	me: UserAccountType!
+	"""
+	Get list data by id
+	"""
+	list(
+		id: ID!
+	): ListType!
+	"""
+	Gel list of movies
+	"""
+	movies(
+		"""
+	Returns the elements in the list that come after the specified cursor.
+	"""
+	after: String
+		"""
+	Returns the elements in the list that come before the specified cursor.
+	"""
+	before: String
+		"""
+	Returns the first _n_ elements from the list.
+	"""
+	first: Int
+		"""
+	Returns the last _n_ elements from the list.
+	"""
+	last: Int
+		filter: MovieFilterInput
+	): MovieConnectionType!
+	"""
+	Get movie data by id
+	"""
+	movie(
+		id: ID!
+	): MovieType!
 }
 
 type Mutation{
@@ -55,7 +89,7 @@ type Mutation{
 	Signin user via email and password
 	"""
 	userSignin(
-		input: UserSigninInputType!
+		input: UserSigninInput!
 	): AuthTokenType!
 	"""
 	Signout current user from the system
@@ -65,6 +99,42 @@ type Mutation{
 	Refresh user token
 	"""
 	refreshToken: RefreshedAccessPayloadType!
+	"""
+	Add movie to favorites.
+	"""
+	userAddFavoriteMovie(
+		input: UserAddFavoriteMovieInput!
+	): UserAccountType!
+	"""
+	Add movie to watchlist.
+	"""
+	userAddWatchlistMovie(
+		input: UserAddWatchlistMovieInput!
+	): UserAccountType!
+	"""
+	Remove movie from the list
+	"""
+	listRemoveItem(
+		input: ListRemoveItemInput!
+	): ListType!
+	"""
+	Add movie to the list
+	"""
+	listAddItem(
+		input: ListAddItemInput!
+	): ListType!
+	"""
+	Craete list for the user
+	"""
+	userCreateList(
+		input: UserCreateListInput!
+	): UserAccountType!
+	"""
+	Delete list
+	"""
+	deleteList(
+		input: DeleteInput!
+	): DeleteListType!
 }
 
 """
@@ -84,9 +154,52 @@ type UserAccountType implements Node{
 	"""
 	id: ID!
 	"""
-	Favotrie movies
+	Favorite movies
 	"""
 	favoriteMovies(
+		"""
+	Returns the elements in the list that come after the specified cursor.
+	"""
+	after: String
+		"""
+	Returns the elements in the list that come before the specified cursor.
+	"""
+	before: String
+		"""
+	Returns the first _n_ elements from the list.
+	"""
+	first: Int
+		"""
+	Returns the last _n_ elements from the list.
+	"""
+	last: Int
+		orderBy: MovieOrdering
+	): MovieConnectionType!
+	"""
+	Movies lists
+	"""
+	lists(
+		"""
+	Returns the elements in the list that come after the specified cursor.
+	"""
+	after: String
+		"""
+	Returns the elements in the list that come before the specified cursor.
+	"""
+	before: String
+		"""
+	Returns the first _n_ elements from the list.
+	"""
+	first: Int
+		"""
+	Returns the last _n_ elements from the list.
+	"""
+	last: Int
+	): ListConnectionType!
+	"""
+	Watchlist movies
+	"""
+	watchlistMovies(
 		"""
 	Returns the elements in the list that come after the specified cursor.
 	"""
@@ -179,11 +292,28 @@ type RefreshedAccessPayloadType{
 	csrf: String!
 }
 
-type ImageType{
+type ImageType implements Node{
+	"""
+	Globally unique identifier.
+	"""
+	id: ID!
 	filePath: String!
 }
 
-type MovieType{
+"""
+Delete List type
+"""
+type DeleteListType{
+	"""
+	Deleted listid
+	"""
+	deletedListId: ID!
+}
+
+type MovieType implements Node{
+	"""
+	Globally unique identifier.
+	"""
 	id: ID!
 	title: String!
 	originalTitle: String!
@@ -192,12 +322,16 @@ type MovieType{
 	runtime: String
 	budget: Money
 	revenue: Money
-	genres: [GenreType!]!
+	year: String
+	genres: [GenreType!]
+	cast: [CastType!]
+	crew: [CrewType!]
+	images: [ImageType!]
 	poster: ImageType
 }
 
 """
-The connection type for ProductType.
+The connection type for MovieType.
 """
 type MovieConnectionType{
 	"""
@@ -216,6 +350,40 @@ type MovieConnectionType{
 	A list of nodes.
 	"""
 	nodes: [MovieType]
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	Total # of objects returned from query
+	"""
+	totalCount: Int!
+	"""
+	Total # of pages, based on total count and pagesize
+	"""
+	totalPageCount: Int!
+}
+
+"""
+The connection type for MovieType.
+"""
+type ListConnectionType{
+	"""
+	Number of current page
+	"""
+	currentPage: Int!
+	"""
+	A list of edges.
+	"""
+	edges: [ListEdgeType]
+	"""
+	List of connected node identifiers
+	"""
+	nodeIds: [ID!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [ListType]
 	"""
 	Information to aid in pagination.
 	"""
@@ -266,28 +434,56 @@ type MovieEdgeType{
 	node: MovieType
 }
 
-type GenreType{
+"""
+An edge in a connection.
+"""
+type ListEdgeType{
+	"""
+	A cursor for use in pagination.
+	"""
+	cursor: String!
+	"""
+	The item at the end of the edge.
+	"""
+	node: ListType
+}
+
+type GenreType implements Node{
+	"""
+	Globally unique identifier.
+	"""
 	id: ID!
 	name: String!
 }
 
-type CastType{
+type CastType implements Node{
+	"""
+	Globally unique identifier.
+	"""
 	id: ID!
 	profile: ImageType
 	name: String!
 	character: String!
 }
 
-type CrewType{
+type CrewType implements Node{
+	"""
+	Globally unique identifier.
+	"""
 	id: ID!
 	profile: ImageType
 	name: String!
 	department: String
 }
 
-type ListType{
+type ListType implements Node{
+	"""
+	Globally unique identifier.
+	"""
+	id: ID!
 	name: String!
 	description: String
+	items: [MovieType!]!
 }
 
 """
@@ -319,13 +515,13 @@ input UserSignupInput{
 """
 Signin buyer via email and password
 """
-input UserSigninInputType{
+input UserSigninInput{
 	"""
-	translation missing: en.graphql.inputs.buyer_signin_input.email
+	email
 	"""
 	email: String!
 	"""
-	translation missing: en.graphql.inputs.buyer_signin_input.password
+	password
 	"""
 	password: String!
 }
@@ -342,6 +538,66 @@ input MovieOrdering{
 	Sort key
 	"""
 	sort: MovieSort!
+}
+
+input UserAddFavoriteMovieInput{
+	"""
+	User account id
+	"""
+	userId: ID!
+	"""
+	Movie id
+	"""
+	movieId: ID!
+}
+
+input UserAddWatchlistMovieInput{
+	"""
+	User account id
+	"""
+	userId: ID!
+	"""
+	Movie id
+	"""
+	movieId: ID!
+}
+
+input ListRemoveItemInput{
+	"""
+	List id
+	"""
+	listId: ID!
+	"""
+	Movie id
+	"""
+	movieId: ID!
+}
+
+input ListAddItemInput{
+	"""
+	List id
+	"""
+	listId: ID!
+	"""
+	Movie id
+	"""
+	movieId: ID!
+}
+
+input MovieFilterInput{
+	title: String!
+}
+
+input UserCreateListInput{
+	name: String!
+	description: String
+}
+
+input DeleteInput{
+	"""
+	Instance id to delete
+	"""
+	id: ID!
 }
 schema{
 	query: Query,
