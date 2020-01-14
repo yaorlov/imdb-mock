@@ -5,5 +5,5 @@
 `nodemon index.js`
 
 ## How to make changes to graphql schema:
-1. Update schema at app.graphqleditor.com/imdb/imdb-mock
+1. Update schema at [app.graphqleditor.com/imdb/imdb-mock](app.graphqleditor.com/imdb/imdb-mock) (create a fork to edit)
 2. Export schema from graphqleditor.com to `schema.gql`
