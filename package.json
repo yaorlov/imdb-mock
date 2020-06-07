@@ -9,7 +9,7 @@
   "author": "yaorlov",
   "license": "ISC",
   "dependencies": {
-    "apollo-server": "^2.9.16",
+    "apollo-server": "^2.14.2",
     "graphql-import-node": "0.0.4"
   }
 }
